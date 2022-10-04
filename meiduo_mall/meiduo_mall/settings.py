@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'apps.users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -175,3 +176,5 @@ LOGGING = {
         },
     }
 }
+# 覆盖系统提供的user表，进行重写
+AUTH_USER_MODEL = 'users.User'
