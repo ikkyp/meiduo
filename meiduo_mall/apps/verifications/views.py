@@ -48,6 +48,5 @@ class SmsCodeView(View):
         pipeline.setex('send_flag_%s' % mobile, 60, 1)
         # 执行管道内的指令，减少redis数据库的访问次数
         pipeline.execute()
-
         CCP().send_template_sms(mobile, [sms_code, 5], 1)
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
