@@ -5,8 +5,8 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django_redis import get_redis_connection
 
+from celery_tasks.sms.tasks import celery_send_sms_code
 from libs.captcha.captcha import captcha
-from libs.yuntongxun.sms import CCP
 
 
 class ImageCodeView(View):
@@ -48,5 +48,7 @@ class SmsCodeView(View):
         pipeline.setex('send_flag_%s' % mobile, 60, 1)
         # 执行管道内的指令，减少redis数据库的访问次数
         pipeline.execute()
-        CCP().send_template_sms(mobile, [sms_code, 5], 1)
+
+        celery_send_sms_code.delay(mobile, sms_code)
+
         return JsonResponse({'code': 0, 'errmsg': 'ok'})
