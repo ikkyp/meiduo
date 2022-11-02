@@ -62,7 +62,7 @@ ROOT_URLCONF = "meiduo_mall.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -228,3 +228,5 @@ EMAIL_HOST_USER = 'qi_rui_hua@163.com'
 EMAIL_HOST_PASSWORD = '123456abc'
 # 收件人看到的发件人
 # EMAIL_FROM = '美多商城<qi_rui_hua@163.com>'
+
+DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'

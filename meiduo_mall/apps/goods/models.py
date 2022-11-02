@@ -10,7 +10,7 @@ class GoodsCategory(BaseModel):
                                verbose_name='父类别')
 
     class Meta:
-        db_table = 'tb_goods_category'
+        db_table = 'tb_category'
         verbose_name = '商品类别'
         verbose_name_plural = verbose_name
 
