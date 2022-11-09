@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'apps.contents.apps.ContentsConfig',
     # CORS
     'corsheaders',
+    'haystack',
 ]
 
 MIDDLEWARE = [
@@ -229,4 +230,18 @@ EMAIL_HOST_PASSWORD = '123456abc'
 # 收件人看到的发件人
 # EMAIL_FROM = '美多商城<qi_rui_hua@163.com>'
 
+# 自定义存储引擎
 DEFAULT_FILE_STORAGE = 'utils.fastdfs.storage.MyStorage'
+
+# Haystack
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://192.168.233.129:9200/',  # Elasticsearch服务器ip地址，端口号固定为9200
+        'INDEX_NAME': 'meiduo_mall',  # Elasticsearch建立的索引库的名称
+    },
+}
+# 当添加、修改、删除数据时，自动生成索引
+# HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
+# HAYSTACK_SIGNAL_PROCESSOR配置项保证了在Django运行起来后，有新的数据产生时，
+# Haystack仍然可以让Elasticsearch实时生成新数据的索引
