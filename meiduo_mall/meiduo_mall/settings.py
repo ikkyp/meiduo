@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # CORS
     'corsheaders',
     'haystack',
+    'django_crontab',  # 定时任务, 该定时任务功能只能在linux下使用，不支持windows
 ]
 
 MIDDLEWARE = [
@@ -247,3 +248,13 @@ HAYSTACK_CONNECTIONS = {
 # Haystack仍然可以让Elasticsearch实时生成新数据的索引
 # 搜索每页的数据条数
 HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
+
+# 该定时任务功能只能在linux下使用，不支持windows
+# 设置定时任务
+# CRONJOBS = [
+#     ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index', '>> ' +
+#      'C:/Users/liu/Desktop/django_test/meiduo/meiduo_mall/logs/crontab.log')
+#
+# ]
+# # 防止出现中文时出现错误
+# CRONTAB_COMMAND_PREFIX = 'LANG_ALL=zh_cn.UTF-8'
