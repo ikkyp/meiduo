@@ -245,3 +245,5 @@ HAYSTACK_CONNECTIONS = {
 # HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
 # HAYSTACK_SIGNAL_PROCESSOR配置项保证了在Django运行起来后，有新的数据产生时，
 # Haystack仍然可以让Elasticsearch实时生成新数据的索引
+# 搜索每页的数据条数
+HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5

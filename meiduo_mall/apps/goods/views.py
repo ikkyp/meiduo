@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
+from haystack.views import SearchView
 
 from apps.contents.models import ContentCategory
 from apps.goods.models import GoodsCategory
@@ -83,3 +84,21 @@ class ListView(View):
 
         # 6.返回响应
         return JsonResponse({'code': 0, 'errmsg': 'ok', 'list': sku_list, 'count': total_num, 'breadcrumb': breadcrumb})
+
+
+class SKUIndex(SearchView):
+    # 重写 create_response方法
+    def create_response(self):
+        context = self.get_context()
+        data_list = []
+        for sku in context['page'].object_list:
+            data_list.append({
+                'id': sku.object.id,
+                'name': sku.object.name,
+                'price': sku.object.price,
+                'default_image_url': sku.object.default_image.url,
+                'searchkey': context.get('query'),
+                'page_size': context['page'].paginator.num_pages,
+                'count': context['page'].paginator.count
+            })
+        return JsonResponse(data_list, safe=False)
