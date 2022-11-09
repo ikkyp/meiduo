@@ -7,7 +7,7 @@ from haystack.views import SearchView
 from apps.contents.models import ContentCategory
 from apps.goods.models import GoodsCategory
 from apps.goods.models import SKU
-from utils.goods import get_breadcrumb
+from utils.goods import get_breadcrumb, get_goods_specs
 from utils.goods import get_categories
 
 
@@ -102,3 +102,26 @@ class SKUIndex(SearchView):
                 'count': context['page'].paginator.count
             })
         return JsonResponse(data_list, safe=False)
+
+
+class DetailView(View):
+    def get(self, request, sku_id):
+        try:
+            sku = SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            pass
+        # 查询商品频道分类
+        categories = get_categories()
+        # 查询面包屑导航
+        breadcrumb = get_breadcrumb(sku.category)
+        # 规格信息
+        goods_specs = get_goods_specs(sku)
+        # 渲染页面
+        context = {
+            'categories': categories,
+            'breadcrumb': breadcrumb,
+            'sku': sku,
+            'specs': goods_specs,
+        }
+
+        return render(request, 'detail.html', context)
