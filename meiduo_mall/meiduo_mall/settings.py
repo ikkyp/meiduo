@@ -252,8 +252,8 @@ HAYSTACK_SEARCH_RESULTS_PER_PAGE = 5
 # 该定时任务功能只能在linux下使用，不支持windows
 # 设置定时任务
 # CRONJOBS = [
-#     ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index', '>> ' +
-#      'C:/Users/liu/Desktop/django_test/meiduo/meiduo_mall/logs/crontab.log')
+#     ('*/1 * * * *', 'apps.contents.crons.generic_meiduo_index',
+#      '>> ' + os.path.join(BASE_DIR, 'logs/crontab.log'))
 #
 # ]
 # # 防止出现中文时出现错误
