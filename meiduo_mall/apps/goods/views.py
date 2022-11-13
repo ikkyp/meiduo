@@ -1,7 +1,10 @@
+import json
+
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
+from django_redis import get_redis_connection
 from haystack.views import SearchView
 
 from apps.contents.models import ContentCategory
@@ -125,3 +128,49 @@ class DetailView(View):
         }
 
         return render(request, 'detail.html', context)
+
+
+# 用户的历史记录的记录及查询
+class UserBrowseHistory(View):
+    def post(self, request):
+        # 获取json数据并得到sku_id的值
+        json_dict = json.loads(request.body.decode())
+        sku_id = json_dict.get('sku_id')
+
+        # 验证该产品是否存在在数据库中
+        try:
+            SKU.objects.get(id=sku_id)
+        except SKU.DoesNotExist:
+            return JsonResponse({'code': 400, 'errmsg': '数据不存在'})
+
+        # 保存用户的浏览数据
+        redis_conn = get_redis_connection('history')
+        p1 = redis_conn.pipeline()
+        user_id = request.user.id
+
+        # 去除redis中存在的历史记录
+        p1.lrem('history_%s' % user_id, 0, sku_id)
+        # 将新浏览的记录导入redis中
+        p1.lpush('history_%s' % user_id, sku_id)
+        # 截取前五个数据
+        p1.ltrim('history_%s' % user_id, 0, 4)
+        # 执行管道数据
+        p1.execute()
+
+        return JsonResponse({'code': 0, 'errmsg': 'OK'})
+
+    def get(self, reqeust):
+        # 获取该用户id保存在redis中的数据并将产品信息传输到前端
+        redis_conn = get_redis_connection('history')
+        sku_ids = redis_conn.lrange('history%s' % reqeust.user.id, 0, -1)
+        skus = []
+
+        for sku_id in sku_ids:
+            sku = SKU.objects.get(id=sku_id)
+            skus.append({
+                'id': sku.id,
+                'name': sku.name,
+                'default_image_url': sku.default_image.url,
+                'price': sku.price,
+            })
+            return JsonResponse({'code': 0, 'errmsg': 'OK', 'skus': skus})

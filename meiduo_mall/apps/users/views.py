@@ -1,105 +1,49 @@
-from django.shortcuts import render
-
 # Create your views here.
-"""
-需求分析： 根据页面的功能（从上到下，从左到右），哪些功能需要和后端配合完成
-如何确定 哪些功能需要和后端进行交互呢？？？
-        1.经验
-        2.关注类似网址的相似功能
-
-"""
-
-"""
-判断用户名是否重复的功能。
-
-前端(了解)：     当用户输入用户名之后，失去焦点， 发送一个axios(ajax)请求
-
-后端（思路）：
-    请求:         接收用户名 
-    业务逻辑：     
-                    根据用户名查询数据库，如果查询结果数量等于0，说明没有注册
-                    如果查询结果数量等于1，说明有注册
-    响应          JSON 
-                {code:0,count:0/1,errmsg:ok}
-    
-    路由      GET         usernames/<username>/count/        
-   步骤：
-        1.  接收用户名
-        2.  根据用户名查询数据库
-        3.  返回响应         
-    
-"""
-from django.views import View
-from apps.users.models import User
-from django.http import JsonResponse
+import json
 import re
+
+from django.http import JsonResponse
+from django.views import View
+
+from apps.users.models import User
+
+
 class UsernameCountView(View):
 
-    def get(self,request,username):
+    def get(self, request, username):
         # 1.  接收用户名，对这个用户名进行一下判断
         # if not re.match('[a-zA-Z0-9_-]{5,20}',username):
         #     return JsonResponse({'code':200,'errmsg':'用户名不满足需求'})
         # 2.  根据用户名查询数据库
-        count=User.objects.filter(username=username).count()
+        count = User.objects.filter(username=username).count()
         # 3.  返回响应
-        return JsonResponse({'code':0,'count':count,'errmsg':'ok'})
+        return JsonResponse({'code': 0, 'count': count, 'errmsg': 'ok'})
 
-"""
-我们不相信前端提交的任何数据！！！！
-
-前端：     当用户输入 用户名，密码，确认密码，手机号，是否同意协议之后，会点击注册按钮
-            前端会发送axios请求
-
-后端：
-    请求：             接收请求（JSON）。获取数据
-    业务逻辑：          验证数据。数据入库
-    响应：             JSON {'code':0,'errmsg':'ok'}
-                     响应码 0 表示成功 400表示失败
-    
-    路由：     POST    register/
-    
-    步骤：
-    
-        1. 接收请求（POST------JSON）
-        2. 获取数据
-        3. 验证数据
-            3.1 用户名，密码，确认密码，手机号，是否同意协议 都要有
-            3.2 用户名满足规则，用户名不能重复
-            3.3 密码满足规则
-            3.4 确认密码和密码要一致
-            3.5 手机号满足规则，手机号也不能重复
-            3.6 需要同意协议
-        4. 数据入库
-        5. 返回响应
-
-
-"""
-import json
 
 class RegisterView(View):
 
-    def post(self,request):
+    def post(self, request):
         # 1. 接收请求（POST------JSON）
-        body_bytes=request.body
-        body_str=body_bytes.decode()
-        body_dict=json.loads(body_str)
+        body_bytes = request.body
+        body_str = body_bytes.decode()
+        body_dict = json.loads(body_str)
 
         # 2. 获取数据
-        username=body_dict.get('username')
-        password=body_dict.get('password')
-        password2=body_dict.get('password2')
-        mobile=body_dict.get('mobile')
-        allow=body_dict.get('allow')
+        username = body_dict.get('username')
+        password = body_dict.get('password')
+        password2 = body_dict.get('password2')
+        mobile = body_dict.get('mobile')
+        allow = body_dict.get('allow')
 
         # 3. 验证数据
         #     3.1 用户名，密码，确认密码，手机号，是否同意协议 都要有
         # all([xxx,xxx,xxx])
         # all里的元素 只要是 None,False
         # all 就返回False，否则返回True
-        if not all([username,password,password2,mobile,allow]):
-            return JsonResponse({'code':400,'errmsg':'参数不全'})
+        if not all([username, password, password2, mobile, allow]):
+            return JsonResponse({'code': 400, 'errmsg': '参数不全'})
         #     3.2 用户名满足规则，用户名不能重复
-        if not re.match('[a-zA-Z_-]{5,20}',username):
+        if not re.match('[a-zA-Z_-]{5,20}', username):
             return JsonResponse({'code': 400, 'errmsg': '用户名不满足规则'})
         #     3.3 密码满足规则
         #     3.4 确认密码和密码要一致
@@ -111,11 +55,11 @@ class RegisterView(View):
 
         # User.objects.create(username=username,password=password,mobile=mobile)
 
-        #以上2中方式，都是可以数据入库的
+        # 以上2中方式，都是可以数据入库的
         # 但是 有一个问题 密码没有加密
 
         # 密码就加密
-        user=User.objects.create_user(username=username,password=password,mobile=mobile)
+        user = User.objects.create_user(username=username, password=password, mobile=mobile)
 
         # 如何设置session信息
         # request.session['user_id']=user.id
@@ -125,10 +69,11 @@ class RegisterView(View):
         # request, user,
         # 状态保持 -- 登录用户的状态保持
         # user 已经登录的用户信息
-        login(request,user)
+        login(request, user)
 
         # 5. 返回响应
-        return JsonResponse({'code':0,'errmsg':'ok'})
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
 
 """
 如果需求是注册成功后即表示用户认证通过，那么此时可以在注册成功后实现状态保持 (注册成功即已经登录)  v
@@ -162,47 +107,46 @@ class RegisterView(View):
 
 """
 
+
 class LoginView(View):
 
-    def post(self,request):
+    def post(self, request):
         # 1. 接收数据
-        data=json.loads(request.body.decode())
-        username=data.get('username')
-        password=data.get('password')
-        remembered=data.get('remembered')
+        data = json.loads(request.body.decode())
+        username = data.get('username')
+        password = data.get('password')
+        remembered = data.get('remembered')
         # 2. 验证数据
-        if not all([username,password]):
-            return JsonResponse({'code':400,'errmsg':'参数不全'})
-
+        if not all([username, password]):
+            return JsonResponse({'code': 400, 'errmsg': '参数不全'})
 
         # 确定 我们是根据手机号查询 还是 根据用户名查询
 
         # USERNAME_FIELD 我们可以根据 修改 User. USERNAME_FIELD 字段
         # 来影响authenticate 的查询
         # authenticate 就是根据 USERNAME_FIELD 来查询
-        if re.match('1[3-9]\d{9}',username):
-            User.USERNAME_FIELD='mobile'
+        if re.match('1[3-9]\d{9}', username):
+            User.USERNAME_FIELD = 'mobile'
         else:
-            User.USERNAME_FIELD='username'
+            User.USERNAME_FIELD = 'username'
 
         # 3. 验证用户名和密码是否正确
         # 我们可以通过模型根据用户名来查询
         # User.objects.get(username=username)
-
 
         # 方式2
         from django.contrib.auth import authenticate
         # authenticate 传递用户名和密码
         # 如果用户名和密码正确，则返回 User信息
         # 如果用户名和密码不正确，则返回 None
-        user=authenticate(username=username,password=password)
+        user = authenticate(username=username, password=password)
 
         if user is None:
-            return JsonResponse({'code':400,'errmsg':'账号或密码错误'})
+            return JsonResponse({'code': 400, 'errmsg': '账号或密码错误'})
 
         # 4. session
         from django.contrib.auth import login
-        login(request,user)
+        login(request, user)
 
         # 5. 判断是否记住登录
         if remembered:
@@ -210,19 +154,17 @@ class LoginView(View):
             request.session.set_expiry(None)
 
         else:
-            #不记住登录  浏览器关闭 session过期
+            # 不记住登录  浏览器关闭 session过期
             request.session.set_expiry(0)
 
         # 6. 返回响应
-        response = JsonResponse({'code':0,'errmsg':'ok'})
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 为了首页显示用户信息
-        response.set_cookie('username',username)
+        response.set_cookie('username', username)
 
-        # 必须是登录后 合并
-        from apps.carts.utils import merge_cookie_to_redis
-        response = merge_cookie_to_redis(request, response)
 
         return response
+
 
 """
 前端：
@@ -235,17 +177,20 @@ class LoginView(View):
 
 """
 from django.contrib.auth import logout
+
+
 class LogoutView(View):
 
-    def get(self,request):
+    def get(self, request):
         # 1. 删除session信息
         logout(request)
 
-        response = JsonResponse({'code':0,'errmsg':'ok'})
+        response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         # 2. 删除cookie信息，为什么要是删除呢？ 因为前端是根据cookie信息来判断用户是否登录的
         response.delete_cookie('username')
 
         return response
+
 
 # 用户中心，也必须是登录用户
 
@@ -256,23 +201,25 @@ LoginRequiredMixin 未登录的用户 会返回 重定向。重定向并不是JS
 我们需要是  返回JSON数据
 """
 
-
 from utils.views import LoginRequiredJSONMixin
-class CenterView(LoginRequiredJSONMixin,View):
 
-    def get(self,request):
+
+class CenterView(LoginRequiredJSONMixin, View):
+
+    def get(self, request):
         # request.user 就是 已经登录的用户信息
         # request.user 是来源于 中间件
         # 系统会进行判断 如果我们确实是登录用户，则可以获取到 登录用户对应的 模型实例数据
         # 如果我们确实不是登录用户，则request.user = AnonymousUser()  匿名用户
         info_data = {
-            'username':request.user.username,
-            'email':request.user.email,
-            'mobile':request.user.mobile,
-            'email_active':request.user.email_active,
+            'username': request.user.username,
+            'email': request.user.email,
+            'mobile': request.user.mobile,
+            'email_active': request.user.email_active,
         }
 
-        return JsonResponse({'code':0,'errmsg':'ok','info_data':info_data})
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'info_data': info_data})
+
 
 """
 需求：     1.保存邮箱地址  2.发送一封激活邮件  3. 用户激活邮件
@@ -297,48 +244,47 @@ class CenterView(LoginRequiredJSONMixin,View):
 需求（要实现什么功能） --> 思路（ 请求。业务逻辑。响应） --> 步骤  --> 代码实现
 """
 
-class EmailView(LoginRequiredJSONMixin,View):
 
-    def put(self,request):
+class EmailView(LoginRequiredJSONMixin, View):
+
+    def put(self, request):
         # 1. 接收请求
-        #ｐｕｔ post －－－　ｂｏdy
-        data=json.loads(request.body.decode())
+        # ｐｕｔ post －－－　ｂｏdy
+        data = json.loads(request.body.decode())
         # 2. 获取数据
-        email=data.get('email')
+        email = data.get('email')
         # 验证数据
         # 正则　
         # 3. 保存邮箱地址
-        user=request.user
+        user = request.user
         # user / request.user 就是　登录用户的　实例对象
         # user --> User
-        user.email=email
+        user.email = email
         user.save()
         # 4. 发送一封激活邮件
         # 一会单独讲发送邮件
-        from django.core.mail import send_mail
         # subject, message, from_email, recipient_list,
         # subject,      主题
-        subject='美多商城激活邮件'
+        subject = '美多商城激活邮件'
         # message,      邮件内容
-        message=""
+        message = ""
         # from_email,   发件人
-        from_email='美多商城<qi_rui_hua@163.com>'
+        from_email = '美多商城<qi_rui_hua@163.com>'
         # recipient_list, 收件人列表
-        recipient_list = ['qi_rui_hua@126.com','qi_rui_hua@163.com']
+        recipient_list = ['qi_rui_hua@126.com', 'qi_rui_hua@163.com']
 
         # 邮件的内容如果是 html 这个时候使用 html_message
         # 4.1 对a标签的连接数据进行加密处理
         # user_id=1
         from apps.users.utils import generic_email_verify_token
-        token=generic_email_verify_token(request.user.id)
+        token = generic_email_verify_token(request.user.id)
 
-        verify_url = "http://www.meiduo.site:8080/success_verify_email.html?token=%s"%token
+        verify_url = "http://www.meiduo.site:8080/success_verify_email.html?token=%s" % token
         # 4.2 组织我们的激活邮件
         html_message = '<p>尊敬的用户您好！</p>' \
                        '<p>感谢您使用美多商城。</p>' \
                        '<p>您的邮箱为：%s 。请点击此链接激活您的邮箱：</p>' \
                        '<p><a href="%s">%s<a></p>' % (email, verify_url, verify_url)
-
 
         # html_message="点击按钮进行激活 <a href='http://www.itcast.cn/?token=%s'>激活</a>"%token
 
@@ -357,7 +303,8 @@ class EmailView(LoginRequiredJSONMixin,View):
         )
 
         # 5. 返回响应
-        return JsonResponse({'code':0,'errmsg':'ok'})
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
 
 """
 django 项目
@@ -390,8 +337,6 @@ django 项目
 3. 调用  send_mail 方法
 """
 
-
-
 """
 需求（知道我们要干什么？？？）：
     激活用户的邮件
@@ -415,28 +360,30 @@ django 项目
 
 """
 
+
 class EmailVerifyView(View):
 
-    def put(self,request):
+    def put(self, request):
         # 1. 接收请求
-        params=request.GET
+        params = request.GET
         # 2. 获取参数
-        token=params.get('token')
+        token = params.get('token')
         # 3. 验证参数
         if token is None:
-            return JsonResponse({'code':400,'errmsg':'参数缺失'})
+            return JsonResponse({'code': 400, 'errmsg': '参数缺失'})
         # 4. 获取user_id
         from apps.users.utils import check_verify_token
-        user_id=check_verify_token(token)
+        user_id = check_verify_token(token)
         if user_id is None:
-            return JsonResponse({'code':400,'errmsg':'参数错误'})
+            return JsonResponse({'code': 400, 'errmsg': '参数错误'})
         # 5. 根据用户id查询数据
-        user=User.objects.get(id=user_id)
+        user = User.objects.get(id=user_id)
         # 6. 修改数据
-        user.email_active=True
+        user.email_active = True
         user.save()
         # 7. 返回响应JSON
-        return JsonResponse({'code':0,'errmsg':'ok'})
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
+
 
 """
 请求
@@ -468,8 +415,6 @@ class EmailVerifyView(View):
     3.返回响应
 """
 
-
-
 """
 需求：
     新增地址
@@ -492,22 +437,24 @@ class EmailVerifyView(View):
 
 """
 from apps.users.models import Address
-class AddressCreateView(LoginRequiredJSONMixin,View):
 
-    def post(self,request):
+
+class AddressCreateView(LoginRequiredJSONMixin, View):
+
+    def post(self, request):
         # 1.接收请求
-        data=json.loads(request.body.decode())
+        data = json.loads(request.body.decode())
         # 2.获取参数，验证参数
-        receiver=data.get('receiver')
-        province_id=data.get('province_id')
-        city_id=data.get('city_id')
-        district_id=data.get('district_id')
-        place=data.get('place')
-        mobile=data.get('mobile')
-        tel=data.get('tel')
-        email=data.get('email')
+        receiver = data.get('receiver')
+        province_id = data.get('province_id')
+        city_id = data.get('city_id')
+        district_id = data.get('district_id')
+        place = data.get('place')
+        mobile = data.get('mobile')
+        tel = data.get('tel')
+        email = data.get('email')
 
-        user=request.user
+        user = request.user
         # 验证参数 （省略）
         # 2.1 验证必传参数
         # 2.2 省市区的id 是否正确
@@ -517,7 +464,7 @@ class AddressCreateView(LoginRequiredJSONMixin,View):
         # 2.6 邮箱
 
         # 3.数据入库
-        address=Address.objects.create(
+        address = Address.objects.create(
             user=user,
             title=receiver,
             receiver=receiver,
@@ -531,7 +478,7 @@ class AddressCreateView(LoginRequiredJSONMixin,View):
         )
 
         address_dict = {
-            'id':address.id,
+            'id': address.id,
             "title": address.title,
             "receiver": address.receiver,
             "province": address.province.name,
@@ -544,19 +491,19 @@ class AddressCreateView(LoginRequiredJSONMixin,View):
         }
 
         # 4.返回响应
-        return JsonResponse({'code':0,'errmsg':'ok','address':address_dict})
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'address': address_dict})
 
 
-class AddressView(LoginRequiredJSONMixin,View):
+class AddressView(LoginRequiredJSONMixin, View):
 
-    def get(self,request):
+    def get(self, request):
         # 1.查询指定数据
-        user=request.user
+        user = request.user
         # addresses=user.addresses
 
-        addresses=Address.objects.filter(user=user,is_deleted=False)
+        addresses = Address.objects.filter(user=user, is_deleted=False)
         # 2.将对象数据转换为字典数据
-        address_list=[]
+        address_list = []
         for address in addresses:
             address_list.append({
                 "id": address.id,
@@ -571,7 +518,7 @@ class AddressView(LoginRequiredJSONMixin,View):
                 "email": address.email
             })
         # 3.返回响应
-        return JsonResponse({'code':0,'errmsg':'ok','addresses':address_list})
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'addresses': address_list})
 
 
 #################################################
@@ -643,50 +590,50 @@ redis:
 """
 from apps.goods.models import SKU
 from django_redis import get_redis_connection
-class UserHistoryView(LoginRequiredJSONMixin,View):
 
-    def post(self,request):
-        user=request.user
+
+class UserHistoryView(LoginRequiredJSONMixin, View):
+
+    def post(self, request):
+        user = request.user
 
         # 1. 接收请求
-        data=json.loads(request.body.decode())
+        data = json.loads(request.body.decode())
         # 2. 获取请求参数
-        sku_id=data.get('sku_id')
+        sku_id = data.get('sku_id')
         # 3. 验证参数
         try:
-            sku=SKU.objects.get(id=sku_id)
+            sku = SKU.objects.get(id=sku_id)
         except SKU.DoesNotExist:
-            return JsonResponse({'code':400,'errmsg':'没有此商品'})
+            return JsonResponse({'code': 400, 'errmsg': '没有此商品'})
         # 4. 连接redis    list
-        redis_cli=get_redis_connection('history')
+        redis_cli = get_redis_connection('history')
         # 5. 去重(先删除 这个商品id 数据，再添加就可以了)
-        redis_cli.lrem('history_%s'%user.id,0,sku_id)
+        redis_cli.lrem('history_%s' % user.id, 0, sku_id)
         # 6. 保存到redsi中
-        redis_cli.lpush('history_%s'%user.id,sku_id)
+        redis_cli.lpush('history_%s' % user.id, sku_id)
         # 7. 只保存5条记录
-        redis_cli.ltrim("history_%s"%user.id,0,4)
+        redis_cli.ltrim("history_%s" % user.id, 0, 4)
         # 8. 返回JSON
-        return JsonResponse({'code':0,'errmsg':'ok'})
+        return JsonResponse({'code': 0, 'errmsg': 'ok'})
 
-
-    def get(self,request):
+    def get(self, request):
         # 1. 连接redis
-        redis_cli=get_redis_connection('history')
+        redis_cli = get_redis_connection('history')
         # 2. 获取redis数据（[1,2,3]）
-        ids=redis_cli.lrange('history_%s'%request.user.id,0,4)
+        ids = redis_cli.lrange('history_%s' % request.user.id, 0, 4)
         # [1,2,3]
         # 3. 根据商品id进行数据查询
-        history_list=[]
+        history_list = []
         for sku_id in ids:
-            sku=SKU.objects.get(id=sku_id)
+            sku = SKU.objects.get(id=sku_id)
             # 4. 将对象转换为字典
             history_list.append({
-                'id':sku.id,
-                'name':sku.name,
+                'id': sku.id,
+                'name': sku.name,
                 'default_image_url': sku.default_image.url,
                 'price': sku.price
             })
 
         # 5. 返回JSON
-        return JsonResponse({'code':0,'errmsg':'ok','skus':history_list})
-
+        return JsonResponse({'code': 0, 'errmsg': 'ok', 'skus': history_list})
