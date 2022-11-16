@@ -11,6 +11,7 @@ from django_redis import get_redis_connection
 from apps.oauth.models import OAuthQQUser
 from apps.users.models import User
 from meiduo_mall import settings
+from apps.carts.utils import merge_cookie_to_redis
 
 
 class LoginUrlView(View):
@@ -97,4 +98,5 @@ class OauthQQView(View):
         login(request, user)
         response = JsonResponse({'code': 0, 'errmsg': 'ok'})
         response.set_cookie('username', user.username)
+        response = merge_cookie_to_redis(request, response)
         return response

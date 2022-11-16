@@ -5,6 +5,7 @@ import re
 from django.http import JsonResponse
 from django.views import View
 
+from apps.carts.utils import merge_cookie_to_redis
 from apps.users.models import User
 
 
@@ -162,7 +163,7 @@ class LoginView(View):
         # 为了首页显示用户信息
         response.set_cookie('username', username)
 
-
+        response = merge_cookie_to_redis(request, response)
         return response
 
 
